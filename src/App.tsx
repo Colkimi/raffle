@@ -12,7 +12,6 @@ import { ShareModal } from './components/ShareModal';
 import { ThemeProvider, useTheme } from './components/ThemeContext';
 import { initializeTickets, saveTickets, calculateStats, resetTickets } from './utils/storage';
 
-// Admin credentials (in production, use proper authentication)
 const ADMIN_USERNAME = 'admin';
 const ADMIN_PASSWORD = 'prewedding2025';
 
