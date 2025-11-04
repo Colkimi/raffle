@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import type { Ticket, RaffleStats } from '../types';
 import { RaffleBoard } from './RaffleBoard';
 import { AdminConfirmModal } from './AdminConfirmModal';
+import AdminAssignModal from './AdminAssignModal';
 import { exportToCSV, calculateRevenue } from '../utils/export';
 import { useToast } from './Toast';
 
@@ -9,6 +10,7 @@ interface AdminPanelProps {
   tickets: Ticket[];
   stats: RaffleStats;
   onTicketToggle: (ticketId: number) => void;
+  onAssign: (ticketId: number, guestName: string, transactionCode?: string) => void;
   onLogout: () => void;
   onReset: () => void;
   onUndo?: () => void;
@@ -19,6 +21,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
   tickets,
   stats,
   onTicketToggle,
+  onAssign,
   onLogout,
   onReset,
   onUndo,
@@ -26,6 +29,7 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
 }) => {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
   const [selectedTickets, setSelectedTickets] = useState<Set<number>>(new Set());
   const { showToast } = useToast();
@@ -51,7 +55,12 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
     const ticket = tickets.find(t => t.id === ticketId);
     if (ticket) {
       setSelectedTicket(ticket);
-      setShowConfirmModal(true);
+      // If ticket is available, open assign modal FIRST (compulsory name entry)
+      if (ticket.status === 'available') {
+        setShowAssignModal(true);
+      } else {
+        setShowConfirmModal(true);
+      }
     }
   };
 
@@ -60,6 +69,16 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
       onTicketToggle(selectedTicket.id);
       setShowConfirmModal(false);
       setSelectedTicket(null);
+    }
+  };
+
+  const handleAssignConfirm = (guestName: string, transactionCode?: string) => {
+    if (selectedTicket) {
+      // Call parent handler to assign ticket - this will mark it as taken and confirmed
+      onAssign(selectedTicket.id, guestName, transactionCode);
+      setShowAssignModal(false);
+      setSelectedTicket(null);
+      showToast(`Ticket #${selectedTicket.id} assigned to ${guestName}`, 'success');
     }
   };
 
@@ -258,6 +277,14 @@ export const AdminPanel: React.FC<AdminPanelProps> = ({
           ticket={selectedTicket}
           onConfirm={handleConfirmToggle}
           onCancel={handleCancelToggle}
+        />
+      )}
+
+      {showAssignModal && selectedTicket && (
+        <AdminAssignModal
+          ticket={selectedTicket}
+          onAssign={handleAssignConfirm}
+          onCancel={() => { setShowAssignModal(false); setSelectedTicket(null); }}
         />
       )}
     </div>

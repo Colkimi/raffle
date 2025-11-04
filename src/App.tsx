@@ -209,6 +209,33 @@ function AdminRoute() {
     setTickets(freshTickets);
   };
 
+  const handleAssignTicket = (ticketId: number, guestName: string, transactionCode?: string) => {
+    // Save current state to history for undo
+    setHistory(prev => [...prev.slice(-9), tickets]);
+
+    setTickets(prevTickets =>
+      prevTickets.map(ticket =>
+        ticket.id === ticketId
+          ? {
+              ...ticket,
+              status: 'selected' as const,
+              taken: false,
+              selectedBy: guestName,
+              selectedAt: new Date().toISOString(),
+              transactionCode,
+              paymentConfirmed: !!transactionCode, // Auto-confirm if transaction code provided
+            }
+          : ticket
+      )
+    );
+    
+    if (transactionCode) {
+      showToast(`Ticket #${ticketId} assigned to ${guestName} and confirmed!`, 'success');
+    } else {
+      showToast(`Ticket #${ticketId} assigned to ${guestName} - awaiting payment confirmation`, 'info');
+    }
+  };
+
   const stats = calculateStats(tickets);
 
   if (!isAdminLoggedIn) {
@@ -220,6 +247,7 @@ function AdminRoute() {
       tickets={tickets}
       stats={stats}
       onTicketToggle={handleTicketToggle}
+      onAssign={handleAssignTicket}
       onLogout={handleAdminLogout}
       onReset={handleReset}
       onUndo={handleUndo}
