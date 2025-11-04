@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import './App.css';
 import type { Ticket } from './types';
 import { RaffleBoard } from './components/RaffleBoard';
@@ -230,7 +230,7 @@ function AdminRoute() {
 
 function App() {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <ThemeProvider>
         <ToastProvider>
           <Routes>
@@ -239,7 +239,7 @@ function App() {
           </Routes>
         </ToastProvider>
       </ThemeProvider>
-    </BrowserRouter>
+    </HashRouter>
   );
 }
 
